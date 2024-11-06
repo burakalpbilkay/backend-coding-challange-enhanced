@@ -62,7 +62,14 @@ curl http://localhost:8080/action/REFER_USER/next
 curl http://localhost:8080/users/referral-index
 
 ```
+## Running Unit Tests
 
+To run the unit tests for this project, use the following command:
+
+```bash
+go test ./...
+
+```
 ## Notes
 
 - **Rate Limiting**: Redis is used for rate limiting to restrict request frequency per user.
