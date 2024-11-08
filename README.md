@@ -46,9 +46,18 @@ This project is a back-end API service built with **Go**, **PostgreSQL**, and **
    `cd backend-coding-challenge-enhanced`
 
 2. Start services with Docker Compose:
-`docker-compose up --build`
+`docker compose up --build`
 
 3. PostgreSQL and Redis will be set up automatically, and the API will be available at `http://localhost:8080`.
+
+## Valid Action Types and Error Handling
+
+The project defines valid action types as constants in `internal/constants/constants.go`. When making a request to `/action/{type}/next`, the `type` parameter is validated against these constants. If an invalid action type is provided, the API returns a `404 Not Found` error with a message indicating an invalid action type.
+
+Similarly, if a user ID does not exist when requesting `/user/{id}/actions/count`, the API returns a `404 Not Found` error indicating that the user was not found.
+
+This validation is designed to improve error handling and ensure meaningful responses for invalid requests.
+
 
 ## Testing the API
 
