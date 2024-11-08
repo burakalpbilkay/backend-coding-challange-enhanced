@@ -5,8 +5,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
+	"strconv"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -17,6 +20,8 @@ type UserRepository struct {
 	db  *sql.DB
 	rdb *redis.Client
 }
+
+var ErrUserNotFound = errors.New("user not found")
 
 // NewUserRepository initializes a new UserRepository with a DB connection.
 func NewUserRepository(db *sql.DB) *UserRepository {
@@ -32,8 +37,9 @@ func (r *UserRepository) SetRedis(rdb *redis.Client) {
 func (r *UserRepository) FetchUserByID(id int) (models.User, error) {
 	var user models.User
 
-	// Check cache
-	cachedUser, err := r.rdb.Get(ctx, fmt.Sprintf("user:%d", id)).Result()
+	// Get the cached result from Redis
+	cacheKey := "user_id:" + strconv.Itoa(id)
+	cachedUser, err := r.rdb.Get(ctx, cacheKey).Result()
 	if err == redis.Nil {
 		log.Println("Cache miss, fetching from database")
 	} else if err != nil {
@@ -44,26 +50,53 @@ func (r *UserRepository) FetchUserByID(id int) (models.User, error) {
 		return user, nil
 	}
 
-	// Fetch from PostgreSQL if not in cache
+	// Go to DB is Redis could not find the result
 	row := r.db.QueryRow("SELECT id, name, created_at FROM users WHERE id=$1", id)
 	err = row.Scan(&user.ID, &user.Name, &user.CreatedAt)
 	if err != nil {
 		return user, err
 	}
 
-	// Cache the result for future requests
+	// Cache the result for a min
 	userData, _ := json.Marshal(user)
-	r.rdb.Set(ctx, fmt.Sprintf("user:%d", id), userData, 0)
+	r.rdb.Set(ctx, fmt.Sprintf("user:%d", id), userData, 60*time.Second)
 
 	return user, nil
 }
 
-// FetchUserActionCount retrieves the total number of actions performed by a user.
+// FetchUserActionCount retrieves the total number of actions performed by a user from the database or Redis cache if available..
 func (r *UserRepository) FetchUserActionCount(userID int) (int, error) {
+	cacheKey := "user_action_count:" + strconv.Itoa(userID)
+
+	// Get the cached result from Redis
+	cachedCount, err := r.rdb.Get(context.Background(), cacheKey).Result()
+	if err == redis.Nil {
+		log.Println("Cache miss, fetching from database")
+	} else if err == nil {
+		log.Println("Cache hit, returning user from Redis")
+		if count, parseErr := strconv.Atoi(cachedCount); parseErr == nil {
+			return count, nil
+		}
+	}
+
+	// Go to DB is Redis could not find the result
+	// Validate that user exists
+	var exists bool
+	err = r.db.QueryRow("SELECT EXISTS (SELECT 1 FROM users WHERE id=$1)", userID).Scan(&exists)
+	if err != nil {
+		return 0, fmt.Errorf("error checking user existence: %v", err)
+	}
+	if !exists {
+		return 0, ErrUserNotFound
+	}
+
 	var count int
-	err := r.db.QueryRow("SELECT COUNT(*) FROM actions WHERE user_id=$1", userID).Scan(&count)
+	err = r.db.QueryRow("SELECT COUNT(*) FROM actions WHERE user_id=$1", userID).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
+
+	// Cache the result for a min
+	r.rdb.Set(ctx, cacheKey, strconv.Itoa(count), 60*time.Second)
 	return count, nil
 }

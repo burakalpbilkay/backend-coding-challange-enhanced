@@ -3,6 +3,7 @@ package handlers
 import (
 	"backend-coding-challenge-enhanced/internal/repositories"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -22,6 +23,10 @@ func (h *ActionHandler) GetNextActionProbabilities(w http.ResponseWriter, r *htt
 
 	probabilities, err := h.repo.FetchNextActionProbabilities(actionType)
 	if err != nil {
+		if errors.Is(err, repositories.ErrInvalidActionType) {
+			http.Error(w, "Action type not found", http.StatusNotFound)
+			return
+		}
 		http.Error(w, "Failed to fetch probabilities", http.StatusInternalServerError)
 		return
 	}
