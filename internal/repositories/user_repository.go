@@ -23,17 +23,17 @@ type UserRepository struct {
 
 var ErrUserNotFound = errors.New("user not found")
 
-// NewUserRepository initializes a new UserRepository with a DB connection.
+// Initialize a new UserRepository with a DB connection.
 func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-// SetRedis sets the Redis client in the UserRepository.
+// Set the Redis client in the UserRepository.
 func (r *UserRepository) SetRedis(rdb *redis.Client) {
 	r.rdb = rdb
 }
 
-// FetchUserByID retrieves a user by ID from the database or Redis cache if available.
+// Retrieve a user by ID from the database or Redis cache if available.
 func (r *UserRepository) FetchUserByID(id int) (models.User, error) {
 	var user models.User
 
@@ -50,7 +50,7 @@ func (r *UserRepository) FetchUserByID(id int) (models.User, error) {
 		return user, nil
 	}
 
-	// Go to DB is Redis could not find the result
+	// Go to DB if Redis could not find the result
 	row := r.db.QueryRow("SELECT id, name, created_at FROM users WHERE id=$1", id)
 	err = row.Scan(&user.ID, &user.Name, &user.CreatedAt)
 	if err != nil {
@@ -64,7 +64,7 @@ func (r *UserRepository) FetchUserByID(id int) (models.User, error) {
 	return user, nil
 }
 
-// FetchUserActionCount retrieves the total number of actions performed by a user from the database or Redis cache if available..
+// Retrieve the total number of actions performed by a user from the database or Redis cache if available.
 func (r *UserRepository) FetchUserActionCount(userID int) (int, error) {
 	cacheKey := "user_action_count:" + strconv.Itoa(userID)
 
@@ -79,7 +79,7 @@ func (r *UserRepository) FetchUserActionCount(userID int) (int, error) {
 		}
 	}
 
-	// Go to DB is Redis could not find the result
+	// Go to DB if Redis could not find the result
 	// Validate that user exists
 	var exists bool
 	err = r.db.QueryRow("SELECT EXISTS (SELECT 1 FROM users WHERE id=$1)", userID).Scan(&exists)
