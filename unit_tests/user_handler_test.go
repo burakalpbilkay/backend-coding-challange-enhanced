@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// TestGetUserByID tests the GetUserByID function in UserHandler
 func TestGetUserByID(t *testing.T) {
 	mockUserRepo := &repositories.MockUserRepo{}
 	userHandler := handlers.NewUserHandler(mockUserRepo)
@@ -22,6 +23,7 @@ func TestGetUserByID(t *testing.T) {
 	}
 }
 
+// TestGetUserActionCount tests the GetUserActionCount function in UserHandler
 func TestGetUserActionCount(t *testing.T) {
 	mockUserRepo := &repositories.MockUserRepo{}
 	userHandler := handlers.NewUserHandler(mockUserRepo)
