@@ -4,8 +4,43 @@
 This project is a back-end API service built with **Go**, **PostgreSQL**, and **Redis**. It provides user and action data handling, including caching and rate limiting. The API reads data from a PostgreSQL database and exposes endpoints to retrieve user information, action counts, action probabilities, and referral indexes.
 
 ## Project Structure
-- **/migrations**: Contains SQL migration files for initializing the PostgreSQL database.
-- **/users.csv** and **/actions.csv**: CSV files for initial data population in PostgreSQL.
+
+- **/cmd/app**: Contains the main application entry point.
+  - **main.go**: The main file to start the application.
+  
+- **/internal**: Contains the core application logic.
+  - **/constants**: Defines constants.
+    - **constants.go**: Holds constants such as valid action types.
+  - **/handlers**: Handles HTTP route logic.
+    - **user_handler.go**: Handles user-related routes.
+    - **action_handler.go**: Handles action-related routes.
+  - **/middleware**: Middleware components (rate limiting).
+    - **rate_limit.go**: Implements rate limiting middleware.
+  - **/models**: Defines the data models used within the application.
+    - **models.go**: Contains struct definitions for entities like `User` and `Action`.
+  - **/repositories**: Manages data access for specific entities.
+    - **db.go**: Establishes and manages database connections.
+    - **interfaces.go**: Defines repository interfaces.
+    - **user_repository.go**: Database operations for user data.
+    - **action_repository.go**: Database operations for action data.
+    - **mock_user_repository.go**: Mock implementation for user repository for testing purposes.
+    - **mock_action_repository.go**: Mock implementation for action repository for testing purposes.
+
+- **/migrations**: Contains SQL migration files for initializing the PostgreSQL database and data files used for initial database population.
+  - **001_create_users_table.sql**: SQL file for creating the users table.
+  - **002_create_actions_table.sql**: SQL file for creating the actions table.
+  - **users.csv**: CSV file with initial user data.
+  - **actions.csv**: CSV file with initial action data.
+
+- **/unit_test**: Test files for unit testing.
+  - **user_handler_test.go**: Unit tests for user handler.
+  - **action_handler_test.go**: Unit tests for action handler.
+
+- **Dockerfile**: Dockerfile for building the application image.
+- **docker-compose.yml**: Docker Compose file for setting up multi-container services.
+- **README.md**: Project documentation, including setup instructions.
+- **go.mod**: Go module file for dependency management.
+
 
 ## API Endpoints
 
@@ -54,7 +89,9 @@ This project is a back-end API service built with **Go**, **PostgreSQL**, and **
 
 The project defines valid action types as constants in `internal/constants/constants.go`. When making a request to `/action/{type}/next`, the `type` parameter is validated against these constants. If an invalid action type is provided, the API returns a `404 Not Found` error with a message indicating an invalid action type.
 
-Similarly, if a user ID does not exist or not a numerical value when requesting `/user/{id}/actions/count`, the API returns a `404 Not Found` error indicating that the user was not found or an invalid user ID.
+For requests to `/user/{id}/actions/count` and `/user/{id}`, the API performs the following validations on `user ID`:
+- If the `user ID` is non-numerical, the API returns a `400 Bad Request` error with a message indicating an invalid user ID.
+- If the `user ID` is valid but does not match with any user in the database, the API returns a `404 Not Found` error indicating that the user was not found. 
 
 This validation is designed to improve error handling and ensure meaningful responses for invalid requests.
 
