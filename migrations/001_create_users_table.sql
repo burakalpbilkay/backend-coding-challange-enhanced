@@ -4,4 +4,4 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMPTZ
 );
 
-COPY users(id, name, created_at) FROM '/docker-entrypoint-initdb.d/users.csv' WITH  (FORMAT csv, HEADER true);
+COPY users(id, name, created_at) FROM '/misc/users.csv' WITH  (FORMAT csv, HEADER true);

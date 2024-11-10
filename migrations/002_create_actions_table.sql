@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS actions (
 );
 
 CREATE INDEX idx_type ON actions(type);
-COPY actions(id, type, user_id, created_at, target_user) FROM '/docker-entrypoint-initdb.d/actions.csv' WITH (FORMAT csv, HEADER true);
+COPY actions(id, type, user_id, created_at, target_user) FROM '/misc/actions.csv'  WITH (FORMAT csv, HEADER true);
