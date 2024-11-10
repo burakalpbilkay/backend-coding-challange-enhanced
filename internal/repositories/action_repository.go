@@ -22,18 +22,17 @@ func (r *ActionRepository) FetchNextActionProbabilities(actionType string) (map[
 	totalCount := 0
 
 	query := `
-		SELECT next_action.type AS next_action, COUNT(*) 
-		FROM actions AS current_action
-		JOIN actions AS next_action
-		ON current_action.user_id = next_action.user_id
-		AND next_action.created_at = (
-			SELECT MIN(created_at)
-			FROM actions
-			WHERE user_id = current_action.user_id
-			AND created_at > current_action.created_at
-		)
-		WHERE current_action.type = $1
-		GROUP BY next_action.type;
+	SELECT next_action, COUNT(*)
+	FROM (
+		SELECT 
+			type AS current_action,
+			LEAD(type) OVER (PARTITION BY user_id ORDER BY created_at) AS next_action
+		FROM actions
+	) AS sequential_actions
+	WHERE current_action = $1
+	AND next_action IS NOT NULL
+	GROUP BY next_action;
+	
     `
 
 	log.Println("Executing query to get action count")
