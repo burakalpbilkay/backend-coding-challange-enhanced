@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"backend-coding-challenge-enhanced/internal/helpers"
 	"backend-coding-challenge-enhanced/internal/repositories"
 	"encoding/json"
 	"errors"
@@ -24,10 +25,10 @@ func (h *ActionHandler) GetNextActionProbabilities(w http.ResponseWriter, r *htt
 	probabilities, err := h.repo.FetchNextActionProbabilities(actionType)
 	if err != nil {
 		if errors.Is(err, repositories.ErrInvalidActionType) {
-			http.Error(w, "Action type not found", http.StatusNotFound)
+			helpers.JSONError(w, "Action type not found", http.StatusBadRequest)
 			return
 		}
-		http.Error(w, "Failed to fetch probabilities", http.StatusInternalServerError)
+		helpers.JSONError(w, "Failed to fetch probabilities", http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(probabilities)
@@ -36,7 +37,7 @@ func (h *ActionHandler) GetNextActionProbabilities(w http.ResponseWriter, r *htt
 func (h *ActionHandler) GetReferralIndex(w http.ResponseWriter, r *http.Request) {
 	referralIndex, err := h.repo.FetchReferralIndex()
 	if err != nil {
-		http.Error(w, "Failed to calculate referral index", http.StatusInternalServerError)
+		helpers.JSONError(w, "Failed to calculate referral index", http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(referralIndex)

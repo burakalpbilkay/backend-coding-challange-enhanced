@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"backend-coding-challenge-enhanced/internal/helpers"
 	"backend-coding-challenge-enhanced/internal/repositories"
 	"encoding/json"
 	"errors"
@@ -24,13 +25,13 @@ func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.Atoi(userIDStr)
 
 	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		helpers.JSONError(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.repo.FetchUserByID(userID)
 	if err != nil {
-		http.Error(w, "User not found", http.StatusNotFound)
+		helpers.JSONError(w, "User not found", http.StatusNotFound)
 		return
 	}
 	json.NewEncoder(w).Encode(user)
@@ -43,17 +44,17 @@ func (h *UserHandler) GetUserActionCount(w http.ResponseWriter, r *http.Request)
 	// Convert userID to an integer, validating that it's numeric
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		helpers.JSONError(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 
 	count, err := h.repo.FetchUserActionCount(userID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrUserNotFound) {
-			http.Error(w, "User not found", http.StatusNotFound)
+			helpers.JSONError(w, "User not found", http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Failed to fetch action count", http.StatusInternalServerError)
+		helpers.JSONError(w, "Failed to retrieve action count", http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(map[string]int{"count": count})

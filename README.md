@@ -14,6 +14,7 @@ This project is a back-end API service built with **Go**, **PostgreSQL**, and **
   - **/handlers**: Handles HTTP route logic.
     - **user_handler.go**: Handles user-related routes.
     - **action_handler.go**: Handles action-related routes.
+  - **/helpers**: Utility functions, including `JSONError` for sending JSON error responses.
   - **/middleware**: Middleware components (rate limiting).
     - **rate_limit.go**: Implements rate limiting middleware.
   - **/models**: Defines the data models used within the application.
