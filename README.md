@@ -10,32 +10,17 @@ This project is a back-end API service built with **Go**, **PostgreSQL**, and **
   
 - **/internal**: Contains the core application logic.
   - **/constants**: Defines constants.
-    - **constants.go**: Holds constants such as valid action types.
   - **/handlers**: Handles HTTP route logic.
-    - **user_handler.go**: Handles user-related routes.
-    - **action_handler.go**: Handles action-related routes.
+  - **/services**: Business logic for managing user and action data.
   - **/helpers**: Utility functions, including `JSONError` for sending JSON error responses.
   - **/middleware**: Middleware components (rate limiting).
-    - **rate_limit.go**: Implements rate limiting middleware.
   - **/models**: Defines the data models used within the application.
-    - **models.go**: Contains struct definitions for entities like `User` and `Action`.
   - **/repositories**: Manages data access for specific entities.
-    - **db.go**: Establishes and manages database connections.
-    - **interfaces.go**: Defines repository interfaces.
-    - **user_repository.go**: Database operations for user data.
-    - **action_repository.go**: Database operations for action data.
-    - **mock_user_repository.go**: Mock implementation for user repository for testing purposes.
-    - **mock_action_repository.go**: Mock implementation for action repository for testing purposes.
 
 - **/migrations**: Contains SQL migration files for initializing the PostgreSQL database and data files used for initial database population.
-  - **001_create_users_table.sql**: SQL file for creating the users table.
-  - **002_create_actions_table.sql**: SQL file for creating the actions table.
-  - **users.csv**: CSV file with initial user data.
-  - **actions.csv**: CSV file with initial action data.
+- **/misc**: Contains `users.csv` and `actions.csv` files to populate the database tables.
 
 - **/unit_test**: Test files for unit testing.
-  - **user_handler_test.go**: Unit tests for user handler.
-  - **action_handler_test.go**: Unit tests for action handler.
 
 - **Dockerfile**: Dockerfile for building the application image.
 - **docker-compose.yml**: Docker Compose file for setting up multi-container services.
@@ -88,7 +73,7 @@ This project is a back-end API service built with **Go**, **PostgreSQL**, and **
 
 ## Valid Action Types and Error Handling
 
-The project defines valid action types as constants in `internal/constants/constants.go`. When making a request to `/action/{type}/next`, the `type` parameter is validated against these constants. If an invalid action type is provided, the API returns a `404 Not Found` error with a message indicating an invalid action type.
+The project defines valid action types as constants in `internal/constants/constants.go`. When making a request to `/action/{type}/next`, the `type` parameter is validated against these constants. If an invalid action type is provided, the API returns a `400 Bad Request` error with a message indicating an invalid action type.
 
 For requests to `/user/{id}/actions/count` and `/user/{id}`, the API performs the following validations on `user ID`:
 - If the `user ID` is non-numerical, the API returns a `400 Bad Request` error with a message indicating an invalid user ID.
