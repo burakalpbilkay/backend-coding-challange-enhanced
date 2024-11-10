@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS actions (
     user_id INT,
     target_user INT,
     created_at TIMESTAMPTZ,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_type (type)
 );
 
 COPY actions(id, type, user_id, created_at, target_user) FROM '/docker-entrypoint-initdb.d/actions.csv' WITH (FORMAT csv, HEADER true);
