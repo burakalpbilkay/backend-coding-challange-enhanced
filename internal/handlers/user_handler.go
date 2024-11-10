@@ -3,6 +3,7 @@ package handlers
 import (
 	"backend-coding-challenge-enhanced/internal/helpers"
 	"backend-coding-challenge-enhanced/internal/repositories"
+	"backend-coding-challenge-enhanced/internal/services"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -12,11 +13,11 @@ import (
 )
 
 type UserHandler struct {
-	repo repositories.UserRepositoryInterface
+	userService *services.UserService
 }
 
-func NewUserHandler(repo repositories.UserRepositoryInterface) *UserHandler {
-	return &UserHandler{repo: repo}
+func NewUserHandler(userService *services.UserService) *UserHandler {
+	return &UserHandler{userService: userService}
 }
 
 func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +30,7 @@ func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.repo.FetchUserByID(userID)
+	user, err := h.userService.GetUserByID(userID)
 	if err != nil {
 		helpers.JSONError(w, "User not found", http.StatusNotFound)
 		return
@@ -48,7 +49,7 @@ func (h *UserHandler) GetUserActionCount(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	count, err := h.repo.FetchUserActionCount(userID)
+	count, err := h.userService.GetUserActionCount(userID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrUserNotFound) {
 			helpers.JSONError(w, "User not found", http.StatusNotFound)

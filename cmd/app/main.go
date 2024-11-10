@@ -4,6 +4,7 @@ import (
 	"backend-coding-challenge-enhanced/internal/handlers"
 	"backend-coding-challenge-enhanced/internal/middleware"
 	"backend-coding-challenge-enhanced/internal/repositories"
+	"backend-coding-challenge-enhanced/internal/services"
 	"log"
 	"net/http"
 	"os"
@@ -25,8 +26,11 @@ func main() {
 	userRepo.SetRedis(rdb)
 	actionRepo := repositories.NewActionRepository(db)
 
+	// Initialize services
+	userService := services.NewUserService(userRepo)
+
 	// Initialize handlers
-	userHandler := handlers.NewUserHandler(userRepo)
+	userHandler := handlers.NewUserHandler(userService)
 	actionHandler := handlers.NewActionHandler(actionRepo)
 
 	// Initialize rate limit middleware
