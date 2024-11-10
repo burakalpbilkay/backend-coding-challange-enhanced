@@ -28,10 +28,11 @@ func main() {
 
 	// Initialize services
 	userService := services.NewUserService(userRepo)
+	actionService := services.NewActionService(actionRepo)
 
 	// Initialize handlers
 	userHandler := handlers.NewUserHandler(userService)
-	actionHandler := handlers.NewActionHandler(actionRepo)
+	actionHandler := handlers.NewActionHandler(actionService)
 
 	// Initialize rate limit middleware
 	rateLimiter := middleware.RateLimit(rdb, 100, time.Minute)

@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"backend-coding-challenge-enhanced/internal/helpers"
-	"backend-coding-challenge-enhanced/internal/repositories"
+	"backend-coding-challenge-enhanced/internal/services"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -11,20 +11,20 @@ import (
 )
 
 type ActionHandler struct {
-	repo repositories.ActionRepositoryInterface
+	actionService *services.ActionService
 }
 
-func NewActionHandler(repo repositories.ActionRepositoryInterface) *ActionHandler {
-	return &ActionHandler{repo: repo}
+func NewActionHandler(actionService *services.ActionService) *ActionHandler {
+	return &ActionHandler{actionService: actionService}
 }
 
 func (h *ActionHandler) GetNextActionProbabilities(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	actionType := vars["type"]
 
-	probabilities, err := h.repo.FetchNextActionProbabilities(actionType)
+	probabilities, err := h.actionService.GetNextActionProbabilities(actionType)
 	if err != nil {
-		if errors.Is(err, repositories.ErrInvalidActionType) {
+		if errors.Is(err, services.ErrInvalidActionType) {
 			helpers.JSONError(w, "Action type not found", http.StatusBadRequest)
 			return
 		}
@@ -35,7 +35,7 @@ func (h *ActionHandler) GetNextActionProbabilities(w http.ResponseWriter, r *htt
 }
 
 func (h *ActionHandler) GetReferralIndex(w http.ResponseWriter, r *http.Request) {
-	referralIndex, err := h.repo.FetchReferralIndex()
+	referralIndex, err := h.actionService.GetReferralIndex()
 	if err != nil {
 		helpers.JSONError(w, "Failed to calculate referral index", http.StatusInternalServerError)
 		return

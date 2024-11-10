@@ -1,9 +1,7 @@
 package repositories
 
 import (
-	"backend-coding-challenge-enhanced/internal/constants"
 	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 )
@@ -12,8 +10,6 @@ type ActionRepository struct {
 	db *sql.DB
 }
 
-var ErrInvalidActionType = errors.New("invalid action type")
-
 // Initialize a new ActionRepository with a DB connection.
 func NewActionRepository(db *sql.DB) *ActionRepository {
 	return &ActionRepository{db: db}
@@ -21,11 +17,6 @@ func NewActionRepository(db *sql.DB) *ActionRepository {
 
 // Calculate the probability of each action following a given action type
 func (r *ActionRepository) FetchNextActionProbabilities(actionType string) (map[string]float64, error) {
-
-	// Validate that actionType is valid
-	if !constants.ValidActionTypes[constants.ActionType(actionType)] {
-		return nil, ErrInvalidActionType
-	}
 
 	probabilities := make(map[string]float64)
 	totalCount := 0
