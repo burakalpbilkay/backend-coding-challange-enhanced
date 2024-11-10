@@ -14,6 +14,11 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
+const (
+	UserIdCacheKey          = "user_id:"
+	UserActionCountCacheKey = "user_action_count:"
+)
+
 var ctx = context.Background()
 
 type UserRepository struct {
@@ -38,7 +43,7 @@ func (r *UserRepository) FetchUserByID(id int) (models.User, error) {
 	var user models.User
 
 	// Get the cached result from Redis
-	cacheKey := "user_id:" + strconv.Itoa(id)
+	cacheKey := UserIdCacheKey + strconv.Itoa(id)
 	cachedUser, err := r.rdb.Get(ctx, cacheKey).Result()
 	if err == redis.Nil {
 		log.Println("Cache miss, fetching from database")
@@ -66,8 +71,7 @@ func (r *UserRepository) FetchUserByID(id int) (models.User, error) {
 
 // Retrieve the total number of actions performed by a user from the database or Redis cache if available.
 func (r *UserRepository) FetchUserActionCount(userID int) (int, error) {
-	cacheKey := "user_action_count:" + strconv.Itoa(userID)
-
+	cacheKey := UserActionCountCacheKey + strconv.Itoa(userID)
 	// Get the cached result from Redis
 	cachedCount, err := r.rdb.Get(context.Background(), cacheKey).Result()
 	if err == redis.Nil {

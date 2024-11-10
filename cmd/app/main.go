@@ -25,6 +25,7 @@ func main() {
 	userRepo := repositories.NewUserRepository(db)
 	userRepo.SetRedis(rdb)
 	actionRepo := repositories.NewActionRepository(db)
+	actionRepo.SetRedis(rdb)
 
 	// Initialize services
 	userService := services.NewUserService(userRepo)

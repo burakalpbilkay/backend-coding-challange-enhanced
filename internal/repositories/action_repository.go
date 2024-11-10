@@ -2,12 +2,22 @@ package repositories
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	"time"
+
+	"github.com/go-redis/redis/v8"
+)
+
+const (
+	ActionProbabilitiesCacheKey = "action_probabilities:"
+	ReferralIndexCacheKey       = "referral_index"
 )
 
 type ActionRepository struct {
-	db *sql.DB
+	db  *sql.DB
+	rdb *redis.Client
 }
 
 // Initialize a new ActionRepository with a DB connection.
@@ -15,9 +25,29 @@ func NewActionRepository(db *sql.DB) *ActionRepository {
 	return &ActionRepository{db: db}
 }
 
+// Set the Redis client in the ActionRepository.
+func (r *ActionRepository) SetRedis(rdb *redis.Client) {
+	r.rdb = rdb
+}
+
 // Calculate the probability of each action following a given action type
 func (r *ActionRepository) FetchNextActionProbabilities(actionType string) (map[string]float64, error) {
 
+	cacheKey := ActionProbabilitiesCacheKey + actionType
+
+	// Get the cached result from Redis
+	cachedData, err := r.rdb.Get(ctx, cacheKey).Result()
+	if err == redis.Nil {
+		log.Println("Cache miss, fetching from database")
+	} else if err == nil {
+		log.Println("Cache hit, returning user from Redis")
+		var probabilities map[string]float64
+		if json.Unmarshal([]byte(cachedData), &probabilities) == nil {
+			return probabilities, nil
+		}
+	}
+
+	// Go to DB if Redis could not find the result
 	probabilities := make(map[string]float64)
 	totalCount := 0
 
@@ -67,12 +97,29 @@ func (r *ActionRepository) FetchNextActionProbabilities(actionType string) (map[
 		probabilities[action] = float64(count) / float64(totalCount)
 	}
 
-	log.Println("FetchNextActionProbabilities completed successfully")
+	// Cache the result for a min
+	data, _ := json.Marshal(probabilities)
+	r.rdb.Set(ctx, cacheKey, data, 60*time.Second)
 	return probabilities, nil
 }
 
 // Calculate the referral index for each user
 func (r *ActionRepository) FetchReferralIndex() (map[int]int, error) {
+
+	cacheKey := ReferralIndexCacheKey
+
+	// Get the cached result from Redis
+	cachedData, err := r.rdb.Get(ctx, cacheKey).Result()
+	if err == redis.Nil {
+		log.Println("Cache miss, fetching from database")
+	} else if err == nil {
+		log.Println("Cache hit, returning user from Redis")
+		var referralIndex map[int]int
+		if json.Unmarshal([]byte(cachedData), &referralIndex) == nil {
+			return referralIndex, nil
+		}
+	}
+
 	referralMap := make(map[int][]int)
 
 	// Get the data from the "actions" table
@@ -127,6 +174,10 @@ func (r *ActionRepository) FetchReferralIndex() (map[int]int, error) {
 
 		referralCountCache[userID] = totalReferrals
 	}
+
+	// Cache the result for a min
+	data, _ := json.Marshal(referralCountCache)
+	r.rdb.Set(ctx, cacheKey, data, 60*time.Second)
 
 	return referralCountCache, nil
 }
