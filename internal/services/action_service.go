@@ -6,6 +6,11 @@ import (
 	"errors"
 )
 
+type ActionServiceInterface interface {
+	GetNextActionProbabilities(actionType string) (map[string]float64, error)
+	GetReferralIndex() (map[int]int, error)
+}
+
 type ActionService struct {
 	actionRepo repositories.ActionRepositoryInterface
 }

@@ -11,10 +11,10 @@ import (
 )
 
 type ActionHandler struct {
-	actionService *services.ActionService
+	actionService services.ActionServiceInterface
 }
 
-func NewActionHandler(actionService *services.ActionService) *ActionHandler {
+func NewActionHandler(actionService services.ActionServiceInterface) *ActionHandler {
 	return &ActionHandler{actionService: actionService}
 }
 

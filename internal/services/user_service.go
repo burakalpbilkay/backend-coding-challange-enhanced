@@ -5,6 +5,11 @@ import (
 	"backend-coding-challenge-enhanced/internal/repositories"
 )
 
+type UserServiceInterface interface {
+	GetUserActionCount(userID int) (int, error)
+	GetUserByID(userID int) (models.User, error)
+}
+
 type UserService struct {
 	userRepo repositories.UserRepositoryInterface
 }
