@@ -106,4 +106,4 @@ go test ./...
 
 - **Rate Limiting**: Redis is used for rate limiting to restrict request frequency per user.
 - **Caching**: Redis caches frequently accessed data to reduce database load.
-- **Database Initialization**: SQL migration files in the `/migrations` directory are run at startup to set up tables and import data.
+- **Database Initialization**: SQL migration files in the `/migrations` and  `/misc` directories are run at startup to set up tables and import data.
