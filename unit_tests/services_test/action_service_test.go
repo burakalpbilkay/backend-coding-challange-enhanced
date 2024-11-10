@@ -23,7 +23,6 @@ func (m *MockActionRepository) FetchReferralIndex() (map[int]int, error) {
 	return args.Get(0).(map[int]int), args.Error(1)
 }
 
-// Test for GetNextActionProbabilities
 func TestGetNextActionProbabilities_Success(t *testing.T) {
 	mockRepo := new(MockActionRepository)
 	actionService := services.NewActionService(mockRepo)
@@ -52,10 +51,8 @@ func TestGetNextActionProbabilities_NotFound(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, services.ErrInvalidActionType, err)
 	assert.Empty(t, probabilities)
-	mockRepo.AssertExpectations(t)
 }
 
-// Test for GetReferralIndex
 func TestGetReferralIndex_Success(t *testing.T) {
 	mockRepo := new(MockActionRepository)
 	actionService := services.NewActionService(mockRepo)

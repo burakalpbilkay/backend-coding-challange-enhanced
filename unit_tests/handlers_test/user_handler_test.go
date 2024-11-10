@@ -8,11 +8,12 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-// MockUserService is a mock implementation of UserServiceInterface
+// MockUserService for testing UserHandler
 type MockUserService struct {
 	mock.Mock
 }
@@ -22,7 +23,6 @@ func (m *MockUserService) GetUserActionCount(userID int) (int, error) {
 	return args.Int(0), args.Error(1)
 }
 
-// New GetUserByID method for MockUserService
 func (m *MockUserService) GetUserByID(userID int) (models.User, error) {
 	args := m.Called(userID)
 	return args.Get(0).(models.User), args.Error(1)
@@ -30,17 +30,20 @@ func (m *MockUserService) GetUserByID(userID int) (models.User, error) {
 
 func TestGetUserActionCount_Success(t *testing.T) {
 	mockService := new(MockUserService)
-	userHandler := handlers.NewUserHandler(mockService) // Now accepts UserServiceInterface
+	userHandler := handlers.NewUserHandler(mockService)
 
 	mockUserID := 1
 	expectedCount := 5
 
 	mockService.On("GetUserActionCount", mockUserID).Return(expectedCount, nil)
 
-	req := httptest.NewRequest("GET", "/user/"+strconv.Itoa(mockUserID)+"/actions/count", nil)
+	router := mux.NewRouter()
+	router.HandleFunc("/user/{id}/actions/count", userHandler.GetUserActionCount)
+
+	req := httptest.NewRequest("GET", "/user/1/actions/count", nil)
 	w := httptest.NewRecorder()
 
-	userHandler.GetUserActionCount(w, req)
+	router.ServeHTTP(w, req)
 
 	mockService.AssertExpectations(t)
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -52,16 +55,19 @@ func TestGetUserByID_Success(t *testing.T) {
 	userHandler := handlers.NewUserHandler(mockService)
 
 	mockUserID := 1
-	expectedUser := models.User{ID: mockUserID, Name: "TestName TestSurname", CreatedAt: "2024-10-10T11:12:99.999Z"}
+	expectedUser := models.User{ID: mockUserID, Name: "John Doe", CreatedAt: "2023-10-06T11:12:22.758Z"}
 
 	mockService.On("GetUserByID", mockUserID).Return(expectedUser, nil)
 
-	req := httptest.NewRequest("GET", "/user/"+strconv.Itoa(mockUserID), nil)
+	router := mux.NewRouter()
+	router.HandleFunc("/user/{id}", userHandler.GetUserByID)
+
+	req := httptest.NewRequest("GET", "/user/1", nil)
 	w := httptest.NewRecorder()
 
-	userHandler.GetUserByID(w, req)
+	router.ServeHTTP(w, req)
 
 	mockService.AssertExpectations(t)
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), "TestName TestSurname")
+	assert.Contains(t, w.Body.String(), "John Doe")
 }
